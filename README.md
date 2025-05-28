@@ -1,3 +1,5 @@
+# Deployed URL: 
+https://x9rhjwh9yl.execute-api.ap-south-1.amazonaws.com/prod/products
 # Welcome to your CDK TypeScript project
 
 This is a blank project for CDK development with TypeScript.

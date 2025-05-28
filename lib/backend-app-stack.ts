@@ -137,15 +137,17 @@ export class ProductServiceStack extends cdk.Stack {
       ],
     });
     getProductsList.addToRolePolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['dynamodb:Scan'],
-      resources: ['arn:aws:dynamodb:us-east-1:256443123887:table/ProductsTable', 'arn:aws:dynamodb:us-east-1:256443123887:table/StockTable'],
-    }));
-    getProductById.addToRolePolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['dynamodb:Scan', 'dynamodb:GetItem'],
-      resources: ['arn:aws:dynamodb:us-east-1:256443123887:table/ProductsTable', 'arn:aws:dynamodb:us-east-1:256443123887:table/StockTable'],
-    }));
+  effect: iam.Effect.ALLOW,
+  actions: ['dynamodb:Scan'],
+  resources: [productsTable.tableArn, stockTable.tableArn],
+}));
+
+getProductById.addToRolePolicy(new iam.PolicyStatement({
+  effect: iam.Effect.ALLOW,
+  actions: ['dynamodb:Scan', 'dynamodb:GetItem'],
+  resources: [productsTable.tableArn, stockTable.tableArn],
+}));
+
     
   }
 }

@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.products = void 0;
+exports.products = [
+    { id: '3', title: 'Mobile Phone', price: 599, description: 'Multifunctional Mobile' },
+    { id: '4', title: 'Smartwatch', price: 199, description: 'A stylish smartwatch with health tracking' },
+    { id: '5', title: 'Headphones', price: 89, description: 'Noise-canceling wireless headphones' },
+    { id: '6', title: 'Smart Speaker', price: 129, description: 'A smart speaker with voice assistant integration' }
+];
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicHJvZHVjdHMuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJwcm9kdWN0cy50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFBYSxRQUFBLFFBQVEsR0FBRztJQUN0QixFQUFFLEVBQUUsRUFBRSxHQUFHLEVBQUUsS0FBSyxFQUFFLGNBQWMsRUFBRSxLQUFLLEVBQUUsR0FBRyxFQUFFLFdBQVcsRUFBRSx3QkFBd0IsRUFBRTtJQUNyRixFQUFFLEVBQUUsRUFBRSxHQUFHLEVBQUUsS0FBSyxFQUFFLFlBQVksRUFBRSxLQUFLLEVBQUUsR0FBRyxFQUFFLFdBQVcsRUFBRSwyQ0FBMkMsRUFBRTtJQUN0RyxFQUFFLEVBQUUsRUFBRSxHQUFHLEVBQUUsS0FBSyxFQUFFLFlBQVksRUFBRSxLQUFLLEVBQUUsRUFBRSxFQUFFLFdBQVcsRUFBRSxxQ0FBcUMsRUFBRTtJQUMvRixFQUFFLEVBQUUsRUFBRSxHQUFHLEVBQUUsS0FBSyxFQUFFLGVBQWUsRUFBRSxLQUFLLEVBQUUsR0FBRyxFQUFFLFdBQVcsRUFBRSxrREFBa0QsRUFBRTtDQUMvRyxDQUFDIiwic291cmNlc0NvbnRlbnQiOlsiZXhwb3J0IGNvbnN0IHByb2R1Y3RzID0gW1xuICB7IGlkOiAnMycsIHRpdGxlOiAnTW9iaWxlIFBob25lJywgcHJpY2U6IDU5OSwgZGVzY3JpcHRpb246ICdNdWx0aWZ1bmN0aW9uYWwgTW9iaWxlJyB9LFxuICB7IGlkOiAnNCcsIHRpdGxlOiAnU21hcnR3YXRjaCcsIHByaWNlOiAxOTksIGRlc2NyaXB0aW9uOiAnQSBzdHlsaXNoIHNtYXJ0d2F0Y2ggd2l0aCBoZWFsdGggdHJhY2tpbmcnIH0sXG4gIHsgaWQ6ICc1JywgdGl0bGU6ICdIZWFkcGhvbmVzJywgcHJpY2U6IDg5LCBkZXNjcmlwdGlvbjogJ05vaXNlLWNhbmNlbGluZyB3aXJlbGVzcyBoZWFkcGhvbmVzJyB9LFxuICB7IGlkOiAnNicsIHRpdGxlOiAnU21hcnQgU3BlYWtlcicsIHByaWNlOiAxMjksIGRlc2NyaXB0aW9uOiAnQSBzbWFydCBzcGVha2VyIHdpdGggdm9pY2UgYXNzaXN0YW50IGludGVncmF0aW9uJyB9XG4gIF07XG4gICJdfQ==

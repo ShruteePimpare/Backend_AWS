@@ -2,10 +2,102 @@
  "Resources": {
   "ImportBucketBAF3A8E9": {
    "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "aws-cdk:auto-delete-objects",
+      "Value": "true"
+     },
+     {
+      "Key": "aws-cdk:cr-owned:uploaded/:8f20f054",
+      "Value": "true"
+     }
+    ],
+    "VersioningConfiguration": {
+     "Status": "Enabled"
+    }
+   },
    "UpdateReplacePolicy": "Delete",
    "DeletionPolicy": "Delete",
    "Metadata": {
     "aws:cdk:path": "ImportServiceStack/ImportBucket/Resource"
+   }
+  },
+  "ImportBucketPolicy77CCB6EA": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "ImportBucketBAF3A8E9"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:PutBucketPolicy"
+       ],
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::GetAtt": [
+          "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+          "Arn"
+         ]
+        }
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "ImportBucketBAF3A8E9",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "ImportBucketBAF3A8E9",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/ImportBucket/Policy/Resource"
+   }
+  },
+  "ImportBucketAutoDeleteObjectsCustomResource1C99B8C5": {
+   "Type": "Custom::S3AutoDeleteObjects",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+      "Arn"
+     ]
+    },
+    "BucketName": {
+     "Ref": "ImportBucketBAF3A8E9"
+    }
+   },
+   "DependsOn": [
+    "ImportBucketPolicy77CCB6EA"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/ImportBucket/AutoDeleteObjectsCustomResource/Default"
    }
   },
   "ImportBucketNotifications556BF97E": {
@@ -49,7 +141,8 @@
     "SkipDestinationValidation": false
    },
    "DependsOn": [
-    "ImportBucketAllowBucketNotificationsToImportServiceStackImportFileParser22F4622CDC181AF3"
+    "ImportBucketAllowBucketNotificationsToImportServiceStackImportFileParser22F4622CDC181AF3",
+    "ImportBucketPolicy77CCB6EA"
    ],
    "Metadata": {
     "aws:cdk:path": "ImportServiceStack/ImportBucket/Notifications/Resource"
@@ -78,6 +171,294 @@
    },
    "Metadata": {
     "aws:cdk:path": "ImportServiceStack/ImportBucket/AllowBucketNotificationsToImportServiceStackImportFileParser22F4622C"
+   }
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role"
+   }
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip"
+    },
+    "Timeout": 900,
+    "MemorySize": 128,
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Lambda function for auto-deleting objects in ",
+       {
+        "Ref": "ImportBucketBAF3A8E9"
+       },
+       " S3 bucket."
+      ]
+     ]
+    }
+   },
+   "DependsOn": [
+    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler",
+    "aws:asset:path": "asset.faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6",
+    "aws:asset:property": "Code"
+   }
+  },
+  "DeployUploadedFolderAwsCliLayer62EF8B9C": {
+   "Type": "AWS::Lambda::LayerVersion",
+   "Properties": {
+    "Content": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "8a84a8f465fbe0c48af2c256847ec9abfe095d23781b749728b998315f3ad732.zip"
+    },
+    "Description": "/opt/awscli/aws"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/DeployUploadedFolder/AwsCliLayer/Resource",
+    "aws:asset:path": "asset.8a84a8f465fbe0c48af2c256847ec9abfe095d23781b749728b998315f3ad732.zip",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Content"
+   }
+  },
+  "DeployUploadedFolderCustomResource0C5E7D81": {
+   "Type": "Custom::CDKBucketDeployment",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536",
+      "Arn"
+     ]
+    },
+    "SourceBucketNames": [
+     {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     }
+    ],
+    "SourceObjectKeys": [
+     "46fd943aafeee91ed3f189219436f46fddbd383208df9ffdff6b44d32c59adc7.zip"
+    ],
+    "SourceMarkers": [
+     {}
+    ],
+    "DestinationBucketName": {
+     "Ref": "ImportBucketBAF3A8E9"
+    },
+    "DestinationBucketKeyPrefix": "uploaded/",
+    "Prune": true,
+    "OutputObjectKeys": true
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/DeployUploadedFolder/CustomResource/Default"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::",
+           {
+            "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+           },
+           "/*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::",
+           {
+            "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+           }
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "ImportBucketBAF3A8E9",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "ImportBucketBAF3A8E9",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+    "Roles": [
+     {
+      "Ref": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "4fe0aba5e672b596d0f72505a9eec502f98d46906bb30fae2511fbdc1df4956f.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "AWS_CA_BUNDLE": "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"
+     }
+    },
+    "Handler": "index.handler",
+    "Layers": [
+     {
+      "Ref": "DeployUploadedFolderAwsCliLayer62EF8B9C"
+     }
+    ],
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.11",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Resource",
+    "aws:asset:path": "asset.4fe0aba5e672b596d0f72505a9eec502f98d46906bb30fae2511fbdc1df4956f",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
    }
   },
   "ImportProductsFileServiceRole952AA178": {
@@ -122,7 +503,6 @@
       {
        "Action": [
         "s3:Abort*",
-        "s3:GetObject",
         "s3:PutObject",
         "s3:PutObjectLegalHold",
         "s3:PutObjectRetention",
@@ -166,7 +546,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "1ce179557eba9cfb4f7572b02bc7296c7123d4eee15b0d7b7dd26e1109cd7ac4.zip"
+     "S3Key": "6bea88964d9c35b1c82210fecb467070ad636f4f3faba72acdb55e2085e24865.zip"
     },
     "Environment": {
      "Variables": {
@@ -190,255 +570,9 @@
    ],
    "Metadata": {
     "aws:cdk:path": "ImportServiceStack/ImportProductsFile/Resource",
-    "aws:asset:path": "asset.1ce179557eba9cfb4f7572b02bc7296c7123d4eee15b0d7b7dd26e1109cd7ac4",
+    "aws:asset:path": "asset.6bea88964d9c35b1c82210fecb467070ad636f4f3faba72acdb55e2085e24865",
     "aws:asset:is-bundled": false,
     "aws:asset:property": "Code"
-   }
-  },
-  "ImportApiA8B26420": {
-   "Type": "AWS::ApiGateway::RestApi",
-   "Properties": {
-    "Description": "This service handles file imports and parsing.",
-    "Name": "ImportServiceAPI"
-   },
-   "Metadata": {
-    "aws:cdk:path": "ImportServiceStack/ImportApi/Resource"
-   }
-  },
-  "ImportApiDeployment683C38F3f063bcc579782f0d34135a76941ecf99": {
-   "Type": "AWS::ApiGateway::Deployment",
-   "Properties": {
-    "Description": "This service handles file imports and parsing.",
-    "RestApiId": {
-     "Ref": "ImportApiA8B26420"
-    }
-   },
-   "DependsOn": [
-    "ImportApiimportGET39421471",
-    "ImportApiimportOPTIONSC4F7D655",
-    "ImportApiimport8A610D1E"
-   ],
-   "Metadata": {
-    "aws:cdk:path": "ImportServiceStack/ImportApi/Deployment/Resource"
-   }
-  },
-  "ImportApiDeploymentStageprod9AC6F63A": {
-   "Type": "AWS::ApiGateway::Stage",
-   "Properties": {
-    "DeploymentId": {
-     "Ref": "ImportApiDeployment683C38F3f063bcc579782f0d34135a76941ecf99"
-    },
-    "RestApiId": {
-     "Ref": "ImportApiA8B26420"
-    },
-    "StageName": "prod"
-   },
-   "Metadata": {
-    "aws:cdk:path": "ImportServiceStack/ImportApi/DeploymentStage.prod/Resource"
-   }
-  },
-  "ImportApiimport8A610D1E": {
-   "Type": "AWS::ApiGateway::Resource",
-   "Properties": {
-    "ParentId": {
-     "Fn::GetAtt": [
-      "ImportApiA8B26420",
-      "RootResourceId"
-     ]
-    },
-    "PathPart": "import",
-    "RestApiId": {
-     "Ref": "ImportApiA8B26420"
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "ImportServiceStack/ImportApi/Default/import/Resource"
-   }
-  },
-  "ImportApiimportGETApiPermissionImportServiceStackImportApiF1DB43F9GETimport2203C152": {
-   "Type": "AWS::Lambda::Permission",
-   "Properties": {
-    "Action": "lambda:InvokeFunction",
-    "FunctionName": {
-     "Fn::GetAtt": [
-      "ImportProductsFile74A4A216",
-      "Arn"
-     ]
-    },
-    "Principal": "apigateway.amazonaws.com",
-    "SourceArn": {
-     "Fn::Join": [
-      "",
-      [
-       "arn:",
-       {
-        "Ref": "AWS::Partition"
-       },
-       ":execute-api:",
-       {
-        "Ref": "AWS::Region"
-       },
-       ":",
-       {
-        "Ref": "AWS::AccountId"
-       },
-       ":",
-       {
-        "Ref": "ImportApiA8B26420"
-       },
-       "/",
-       {
-        "Ref": "ImportApiDeploymentStageprod9AC6F63A"
-       },
-       "/GET/import"
-      ]
-     ]
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "ImportServiceStack/ImportApi/Default/import/GET/ApiPermission.ImportServiceStackImportApiF1DB43F9.GET..import"
-   }
-  },
-  "ImportApiimportGETApiPermissionTestImportServiceStackImportApiF1DB43F9GETimport6414800B": {
-   "Type": "AWS::Lambda::Permission",
-   "Properties": {
-    "Action": "lambda:InvokeFunction",
-    "FunctionName": {
-     "Fn::GetAtt": [
-      "ImportProductsFile74A4A216",
-      "Arn"
-     ]
-    },
-    "Principal": "apigateway.amazonaws.com",
-    "SourceArn": {
-     "Fn::Join": [
-      "",
-      [
-       "arn:",
-       {
-        "Ref": "AWS::Partition"
-       },
-       ":execute-api:",
-       {
-        "Ref": "AWS::Region"
-       },
-       ":",
-       {
-        "Ref": "AWS::AccountId"
-       },
-       ":",
-       {
-        "Ref": "ImportApiA8B26420"
-       },
-       "/test-invoke-stage/GET/import"
-      ]
-     ]
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "ImportServiceStack/ImportApi/Default/import/GET/ApiPermission.Test.ImportServiceStackImportApiF1DB43F9.GET..import"
-   }
-  },
-  "ImportApiimportGET39421471": {
-   "Type": "AWS::ApiGateway::Method",
-   "Properties": {
-    "AuthorizationType": "NONE",
-    "HttpMethod": "GET",
-    "Integration": {
-     "IntegrationHttpMethod": "POST",
-     "IntegrationResponses": [
-      {
-       "ResponseParameters": {
-        "method.response.header.Access-Control-Allow-Origin": "'*'"
-       },
-       "StatusCode": "200"
-      }
-     ],
-     "Type": "AWS_PROXY",
-     "Uri": {
-      "Fn::Join": [
-       "",
-       [
-        "arn:",
-        {
-         "Ref": "AWS::Partition"
-        },
-        ":apigateway:",
-        {
-         "Ref": "AWS::Region"
-        },
-        ":lambda:path/2015-03-31/functions/",
-        {
-         "Fn::GetAtt": [
-          "ImportProductsFile74A4A216",
-          "Arn"
-         ]
-        },
-        "/invocations"
-       ]
-      ]
-     }
-    },
-    "MethodResponses": [
-     {
-      "ResponseParameters": {
-       "method.response.header.Access-Control-Allow-Origin": true
-      },
-      "StatusCode": "200"
-     }
-    ],
-    "ResourceId": {
-     "Ref": "ImportApiimport8A610D1E"
-    },
-    "RestApiId": {
-     "Ref": "ImportApiA8B26420"
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "ImportServiceStack/ImportApi/Default/import/GET/Resource"
-   }
-  },
-  "ImportApiimportOPTIONSC4F7D655": {
-   "Type": "AWS::ApiGateway::Method",
-   "Properties": {
-    "ApiKeyRequired": false,
-    "AuthorizationType": "NONE",
-    "HttpMethod": "OPTIONS",
-    "Integration": {
-     "IntegrationResponses": [
-      {
-       "ResponseParameters": {
-        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
-        "method.response.header.Access-Control-Allow-Origin": "'*'",
-        "method.response.header.Access-Control-Allow-Methods": "'GET'"
-       },
-       "StatusCode": "204"
-      }
-     ],
-     "RequestTemplates": {
-      "application/json": "{ statusCode: 200 }"
-     },
-     "Type": "MOCK"
-    },
-    "MethodResponses": [
-     {
-      "ResponseParameters": {
-       "method.response.header.Access-Control-Allow-Headers": true,
-       "method.response.header.Access-Control-Allow-Origin": true,
-       "method.response.header.Access-Control-Allow-Methods": true
-      },
-      "StatusCode": "204"
-     }
-    ],
-    "ResourceId": {
-     "Ref": "ImportApiimport8A610D1E"
-    },
-    "RestApiId": {
-     "Ref": "ImportApiA8B26420"
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "ImportServiceStack/ImportApi/Default/import/OPTIONS/Resource"
    }
   },
   "ImportFileParserServiceRoleC91336E9": {
@@ -509,28 +643,6 @@
          ]
         }
        ]
-      },
-      {
-       "Action": [
-        "s3:CopyObject",
-        "s3:DeleteObject",
-        "s3:GetObject"
-       ],
-       "Effect": "Allow",
-       "Resource": {
-        "Fn::Join": [
-         "",
-         [
-          {
-           "Fn::GetAtt": [
-            "ImportBucketBAF3A8E9",
-            "Arn"
-           ]
-          },
-          "/*"
-         ]
-        ]
-       }
       }
      ],
      "Version": "2012-10-17"
@@ -553,7 +665,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "1ce179557eba9cfb4f7572b02bc7296c7123d4eee15b0d7b7dd26e1109cd7ac4.zip"
+     "S3Key": "6bea88964d9c35b1c82210fecb467070ad636f4f3faba72acdb55e2085e24865.zip"
     },
     "Environment": {
      "Variables": {
@@ -577,7 +689,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "ImportServiceStack/ImportFileParser/Resource",
-    "aws:asset:path": "asset.1ce179557eba9cfb4f7572b02bc7296c7123d4eee15b0d7b7dd26e1109cd7ac4",
+    "aws:asset:path": "asset.6bea88964d9c35b1c82210fecb467070ad636f4f3faba72acdb55e2085e24865",
     "aws:asset:is-bundled": false,
     "aws:asset:property": "Code"
    }
@@ -665,10 +777,239 @@
     "aws:cdk:path": "ImportServiceStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Resource"
    }
   },
+  "ImportServiceApi8F88CB06": {
+   "Type": "AWS::ApiGateway::RestApi",
+   "Properties": {
+    "Name": "Import Products Service"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/ImportServiceApi/Resource"
+   }
+  },
+  "ImportServiceApiDeployment3C31EF8Ca61ad3fb5ba16fcbdcc8bd23a237d027": {
+   "Type": "AWS::ApiGateway::Deployment",
+   "Properties": {
+    "Description": "Automatically created by the RestApi construct",
+    "RestApiId": {
+     "Ref": "ImportServiceApi8F88CB06"
+    }
+   },
+   "DependsOn": [
+    "ImportServiceApiimportGET6BDAA231",
+    "ImportServiceApiimportOPTIONS0D107BC8",
+    "ImportServiceApiimport7D50D4D2"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/ImportServiceApi/Deployment/Resource"
+   }
+  },
+  "ImportServiceApiDeploymentStageprod6E938E1D": {
+   "Type": "AWS::ApiGateway::Stage",
+   "Properties": {
+    "DeploymentId": {
+     "Ref": "ImportServiceApiDeployment3C31EF8Ca61ad3fb5ba16fcbdcc8bd23a237d027"
+    },
+    "RestApiId": {
+     "Ref": "ImportServiceApi8F88CB06"
+    },
+    "StageName": "prod"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/ImportServiceApi/DeploymentStage.prod/Resource"
+   }
+  },
+  "ImportServiceApiimport7D50D4D2": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "ImportServiceApi8F88CB06",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "import",
+    "RestApiId": {
+     "Ref": "ImportServiceApi8F88CB06"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/ImportServiceApi/Default/import/Resource"
+   }
+  },
+  "ImportServiceApiimportGETApiPermissionImportServiceStackImportServiceApiAA3B25C9GETimport058599A4": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ImportProductsFile74A4A216",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "ImportServiceApi8F88CB06"
+       },
+       "/",
+       {
+        "Ref": "ImportServiceApiDeploymentStageprod6E938E1D"
+       },
+       "/GET/import"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/ImportServiceApi/Default/import/GET/ApiPermission.ImportServiceStackImportServiceApiAA3B25C9.GET..import"
+   }
+  },
+  "ImportServiceApiimportGETApiPermissionTestImportServiceStackImportServiceApiAA3B25C9GETimport0ABB6BE5": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ImportProductsFile74A4A216",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "ImportServiceApi8F88CB06"
+       },
+       "/test-invoke-stage/GET/import"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/ImportServiceApi/Default/import/GET/ApiPermission.Test.ImportServiceStackImportServiceApiAA3B25C9.GET..import"
+   }
+  },
+  "ImportServiceApiimportGET6BDAA231": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:",
+        {
+         "Ref": "AWS::Region"
+        },
+        ":lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "ImportProductsFile74A4A216",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "ImportServiceApiimport7D50D4D2"
+    },
+    "RestApiId": {
+     "Ref": "ImportServiceApi8F88CB06"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/ImportServiceApi/Default/import/GET/Resource"
+   }
+  },
+  "ImportServiceApiimportOPTIONS0D107BC8": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'GET'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "ImportServiceApiimport7D50D4D2"
+    },
+    "RestApiId": {
+     "Ref": "ImportServiceApi8F88CB06"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ImportServiceStack/ImportServiceApi/Default/import/OPTIONS/Resource"
+   }
+  },
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/+1VTW/UMBD9LfWxckM/DpS9bQtIFRRW271Fq2oaT3fdJrbxTFoFK/8dxXF2syqtQAgBEqckb56fZ17G4+Ps6PRNdrgHj3RQqPuDUt9k4YqhuJfwSNeBTrJwVhf3yHkQHiv7AOXMlrpoxEQoJPa2Ee1Snt+anib7xxkQ5stWllDdKMjC+a2Zoa80kbZGvq9NwdqaTrM2rCsUE7EvpFiDUSX69FVYNQTQPGhvTYWGI9LKIECpd2M4j8x9seyCv0U31jkk30oNVRbmtsQ8CCCqK1RnjZgE4bw2hXZQTovC1klaJk63YBoV0o6iAgMrVNFXjSQmedjBmqlP3GXKb2FnwxbD38hDijJDsb4wpTa4iQ2uvBx8Wfd/gc8VmLQvxxX9kRpjf3bZyR6PnTssWNgu8kTnKazUFQNj1/w0Sul78L+iH43pPWklnVwDETJl0+4hwekVMD5Ck4U5Ek+djsMuvn2CzRBRSIXXbvvfe7t7nnyLrrRNt2kenlClAKfTm0cGbbZ0Gg+ehf1oV7qA8kLtWPPjeExqqy6vGFYYUxqgUfIxKOdItvYFxqHd2bhB8iAceNz0vwNez8Dzbv2RKi+R11b1zkVkmL3Mro8lQBvGlYeROTY6Rd3BqyJzjuSsoTQqiIFrOt9ObZ/CM/BQIaOn4WQNR3FH5WdF5C/WADWvrddfuwtn/HUxrB6guH7ROBwGJTj9AZs5fqm1RyUmt1ASPseXf4VZsQl6ibbdaYhNE6X7M96hMp65ru+0WXX0zzW7mltprMLsjl49HJ1mx4fZ67070vogXePZvH9+A6JGyLevCAAA"
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/+VW34/bNgz+W6rHQue11z1secul23DYdQ2Sw16M4MBYvER3suRJVAJXyP8+SLIS59ZdW2zDfj3ZJiny40eL5GX1+ptvq1cvYO8uGvF4oeS6CkuC5pHD3t0F96YKV755RKoD26F10mgUbELWI2cWW7MDNTdKNj2bMIGOrOkZZ+DJvEWFhO/XD9iQy0cOKz6719khz498uA5snT7ZhL1kY7OsH4yvwGG9OnAF7VpAFWb3eo62lS7iimduoEf7c8bJl1JvFJLR33vdkDS6Dsx7KVIMzlS0dWxSs5dsxRnqnbRGt6jpaBCjzL3tjMNBRrJF44uFNaooWmyN7ZfyQxFgt8UWLaglGQsbHKl2XXN6W/q1xkhQEtxLha53hG0BYTY/WOO74bMxonjZghYKbYHidcSW+eOBgRDvkEAAQU6RxwKsPq6KDBxWfMTTJ8n5NxHx3Rj9KeGsvBlnGmVjB8/EeUrJJ2P9JX7TTSl1O3D35i4I7JTpo2GVb83bo4CDc0iumsbHgUtoq7AwCuvAwDnforjq2SSwzkrdyA7UtGmMP9Y828QD0xRvwMda0LBBka6qxMhlOJP1UzvYFtJvzbyEKN2jDoOWCJrttVZS41F3rNezyuf9/gcS/D+nUDrXGPPfkkW6chEdH2ZXBF0O3JpFaoVP/PxWLMSSgDDeSjeC9DHxn+b/H+coUZlZPHDo5AYI99BXYYGOpp2sA7P57ScoLT3Tn6X81NrqENePxsru+MtwBp0sUwEJpD6Zu3FvvTU3ZiMbUNfirBSfL0+gRn12SbDBBKmIRuCTki/QGW8bTDtNmrJFUgfWgT2N2g5oOwdL5/knU/4OaWtE5ilJykwh6rJuEEhNuLEwIsckpk5E/AEPIS58W2PlhzjGxl/X5XQRpfO3fVcGdKzRj9gv8BcvbVwt70E5/D37uF5ESAt0ndFu6GOOgLybnSaqHdRzsNAipfmem8Jp/xl5+VInqQTZxeHAZ96RaY/FK6P5rEznNnNrdlKgjaXnaRbHX0LqzbDY3qXt6w72rlGymu7dTMm0psR/jT+NxMcR33vqPB24NgKrB/fV7vKyev119erFg5PyYlhBqkV+/gom8oH8/gsAAA=="
    },
    "Metadata": {
     "aws:cdk:path": "ImportServiceStack/CDKMetadata/Default"
@@ -677,14 +1018,14 @@
   }
  },
  "Outputs": {
-  "ImportApiEndpointD68DD113": {
+  "ImportServiceApiEndpoint08D58EAA": {
    "Value": {
     "Fn::Join": [
      "",
      [
       "https://",
       {
-       "Ref": "ImportApiA8B26420"
+       "Ref": "ImportServiceApi8F88CB06"
       },
       ".execute-api.",
       {
@@ -696,7 +1037,7 @@
       },
       "/",
       {
-       "Ref": "ImportApiDeploymentStageprod9AC6F63A"
+       "Ref": "ImportServiceApiDeploymentStageprod6E938E1D"
       },
       "/"
      ]
